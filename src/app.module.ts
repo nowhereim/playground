@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { KafkaModule } from './libs/kafka/module';
 import { DatabaseModule } from './libs/datasource/module';
 import { ConfigModule } from '@nestjs/config';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     KafkaModule,
     DatabaseModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [AppService],
