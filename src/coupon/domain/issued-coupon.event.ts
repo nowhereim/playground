@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 as EventEmitter } from '@nestjs/event-emitter';
+import { IEventRepository } from './repository';
 
 export abstract class Event {
   readonly occurredAt: Date;
@@ -21,28 +22,20 @@ export class IssuedCouponEvent extends Event {
 @Injectable()
 export class Events {
   private static eventEmitter: EventEmitter;
-  private static eventQueue: Event[] = [];
+  private static eventRepository: IEventRepository;
 
-  static initialize(eventEmitter: EventEmitter) {
+  static initialize(
+    eventEmitter: EventEmitter,
+    eventRepository: IEventRepository,
+  ) {
     Events.eventEmitter = eventEmitter;
+    Events.eventRepository = eventRepository;
   }
 
   static raise(event: Event) {
     this.eventEmitter.emit(event.constructor.name, event);
+    this.eventRepository.saveEvent({
+      events: [event],
+    });
   }
-
-  //   static release(): void {
-  //     if (!this.eventEmitter) {
-  //       throw new Error('EventEmitter not initialized');
-  //     }
-  //     const events = this.eventQueue;
-  //     events.forEach((event) => {
-  //       this.eventEmitter.emit(event.constructor.name, event);
-  //     });
-  //     this.eventQueue = [];
-  //   }
-
-  //   static clear() {
-  //     this.eventQueue = [];
-  //   }
 }

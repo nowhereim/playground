@@ -6,8 +6,8 @@ import {
 } from '../domain/repository';
 import { Coupon, CouponHistory } from '../domain/model';
 import { CreateCouponDto, IssueCouponDto } from './dto/dto';
-import { IssueCouponEventModel } from './event.test';
 import { OnEvent } from '@nestjs/event-emitter';
+import { IssuedCouponEvent } from '../domain/issued-coupon.event';
 
 @Injectable()
 export class CouponService {
@@ -38,31 +38,22 @@ export class CouponService {
           coupon,
           transactionalEntityManager,
         );
-        // console.log(new IssueCouponEventModel({ model: coupon, args }));
-        // /* 근데 이렇게 하면 애그리거트 루트를 통한 생성이 아니게 되버린다. */
-        // this.eventRepository.saveEvent({
-        //   events: [
-        //     new IssueCouponEventModel({
-        //       model: coupon,
-        //       args,
-        //     }),
-        //   ],
-        // });
+
         coupon.issuedCouponEvent();
       });
   }
 
-  @OnEvent('IssueCouponEvent')
-  async handleOrderCreatedEvent(event: IssueCouponEventModel) {
+  @OnEvent('IssuedCouponEvent')
+  async handleOrderCreatedEvent(event: IssuedCouponEvent) {
     try {
       console.log('잉?');
       await this.couponRepository
         .getTransactionManager()
         .transaction(async (transactionalEntityManager) => {
-          const { model, args } = event;
+          const { userId, couponId } = event;
           const couponHistory = new CouponHistory({
-            couponId: model.id,
-            userId: args.userId,
+            couponId,
+            userId,
             isUsed: false,
             usedAt: null,
           });
@@ -77,7 +68,7 @@ export class CouponService {
   }
 
   @OnEvent('IssuedCouponEvent')
-  async handleIssuedCouponEvent(event: IssueCouponEventModel) {
+  async handleIssuedCouponEvent(event: IssuedCouponEvent) {
     try {
       console.log('받음?');
       console.log(event);
@@ -86,4 +77,4 @@ export class CouponService {
     }
   }
 }
-/* 불리언 자체를 쓰기보단 풍부한 객체를 써라. 왜냐하면 변화에 대응하기 좋아진다. */
+/* 불리언 자체를 쓰기보단 풍부한 객체를 써라. 왜냐하면 변화에 대응하기 좋아진다. -> 프리미티브타입 반환을 지양 */

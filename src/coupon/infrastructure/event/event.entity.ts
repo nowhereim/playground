@@ -24,17 +24,6 @@ export class DomainEvent {
     this.occurredAt = new Date();
   }
 
-  // @BeforeInsert()
-  // private setType() {
-  //   this.type = this.constructor.name;
-  // }
-
-  // @BeforeInsert()
-  // private serialize() {
-  //   const { id: _, type: __, occurredAt: ___, data: ____, ...props } = this;
-  //   this.data = JSON.stringify(props);
-  // }
-
   @AfterLoad()
   private deserialize() {
     const props = JSON.parse(this.data);

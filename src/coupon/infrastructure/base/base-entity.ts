@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm';
 
-export class BaseEntity {
+export abstract class BaseEntity {
   @CreateDateColumn()
   @Exclude()
   private createdAt!: Date;
