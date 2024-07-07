@@ -1,4 +1,4 @@
-import { BaseEntity } from 'src/libs/repository/base-entity';
+import { BaseEntity } from 'src/coupon/infrastructure/base/base-entity';
 import { Column, Entity, PrimaryGeneratedColumn, VersionColumn } from 'typeorm';
 
 @Entity()
@@ -43,9 +43,14 @@ export class CouponHistoryEntity extends BaseEntity {
   @Column()
   userId: number;
 
-  @Column()
+  @Column({ default: false })
   isUsed: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   usedAt: Date;
+
+  constructor(args: Partial<CouponHistoryEntity>) {
+    super();
+    Object.assign(this, args);
+  }
 }

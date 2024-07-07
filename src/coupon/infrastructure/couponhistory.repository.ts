@@ -1,21 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'src/libs/repository/abstract-repository';
+import { Repository } from './base/base-repository';
 import { CouponHistoryEntity } from './coupon.entity';
 import { CouponHistoryRepository } from '../domain/repository';
-import { EntityManager, ObjectType } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import { CouponHistory } from '../domain/model';
 
 @Injectable()
 export class CouponHistoryRepositoryImpl
-  extends Repository<CouponHistoryEntity>
+  extends Repository
   implements CouponHistoryRepository
 {
-  protected entityClass: ObjectType<CouponHistoryEntity>;
-
-  createCouponHistory: (
-    couponHistory: CouponHistory,
+  async createCouponHistory(
+    args: CouponHistory,
     transactionalEntityManager?: EntityManager,
-  ) => Promise<CouponHistory>;
+  ) {
+    const entity = new CouponHistoryEntity(args);
+    await (
+      transactionalEntityManager
+        ? transactionalEntityManager
+        : this.getManager()
+    ).save(entity);
+
+    return new CouponHistory(entity);
+  }
   updateCouponHistory: (
     couponHistory: CouponHistory,
     transactionalEntityManager?: EntityManager,

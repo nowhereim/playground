@@ -2,10 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   CouponHistoryRepository,
   CouponRepository,
+  IEventRepository,
 } from '../domain/repository';
-import { Coupon } from '../domain/model';
-import { DataSource } from 'typeorm';
+import { Coupon, CouponHistory } from '../domain/model';
 import { CreateCouponDto, IssueCouponDto } from './dto/dto';
+import { IssueCouponEventModel } from './event.test';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CouponService {
@@ -14,8 +16,8 @@ export class CouponService {
     private readonly couponRepository: CouponRepository,
     @Inject('CouponHistoryRepository')
     private readonly couponHistoryRepository: CouponHistoryRepository,
-
-    private readonly dataSource: DataSource,
+    @Inject('IEventRepository')
+    private readonly eventRepository: IEventRepository,
   ) {}
 
   async createCoupon(args: CreateCouponDto) {
@@ -24,27 +26,64 @@ export class CouponService {
   }
 
   async issueCoupon(args: IssueCouponDto) {
-    await this.dataSource
-      .createEntityManager()
+    await this.couponRepository
+      .getTransactionManager()
       .transaction(async (transactionalEntityManager) => {
         const coupon = await this.couponRepository.getCoupon(
           args.couponId,
           transactionalEntityManager,
         );
-        const couponHistory = coupon.issueCoupon(args.userId);
+        coupon.issueCoupon();
         await this.couponRepository.updateCoupon(
           coupon,
           transactionalEntityManager,
         );
-        await this.couponHistoryRepository.createCouponHistory(
-          couponHistory,
-          transactionalEntityManager,
-        );
+        // console.log(new IssueCouponEventModel({ model: coupon, args }));
+        // /* 근데 이렇게 하면 애그리거트 루트를 통한 생성이 아니게 되버린다. */
+        // this.eventRepository.saveEvent({
+        //   events: [
+        //     new IssueCouponEventModel({
+        //       model: coupon,
+        //       args,
+        //     }),
+        //   ],
+        // });
+        coupon.issuedCouponEvent();
       });
   }
 
-  async updateCoupon(args: any) {
-    const coupon = new Coupon(args);
-    await this.couponRepository.updateCoupon(coupon);
+  @OnEvent('IssueCouponEvent')
+  async handleOrderCreatedEvent(event: IssueCouponEventModel) {
+    try {
+      console.log('잉?');
+      await this.couponRepository
+        .getTransactionManager()
+        .transaction(async (transactionalEntityManager) => {
+          const { model, args } = event;
+          const couponHistory = new CouponHistory({
+            couponId: model.id,
+            userId: args.userId,
+            isUsed: false,
+            usedAt: null,
+          });
+          await this.couponHistoryRepository.createCouponHistory(
+            couponHistory,
+            transactionalEntityManager,
+          );
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  @OnEvent('IssuedCouponEvent')
+  async handleIssuedCouponEvent(event: IssueCouponEventModel) {
+    try {
+      console.log('받음?');
+      console.log(event);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
+/* 불리언 자체를 쓰기보단 풍부한 객체를 써라. 왜냐하면 변화에 대응하기 좋아진다. */

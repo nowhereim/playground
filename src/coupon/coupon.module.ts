@@ -3,6 +3,7 @@ import { CouponController } from './presentation/controller';
 import { CouponService } from './application/service';
 import { CouponRepositoryImpl } from './infrastructure/coupon.repository';
 import { CouponHistoryRepositoryImpl } from './infrastructure/couponhistory.repository';
+import { EventRepositoryImpl } from './infrastructure/event/event.repository';
 
 @Module({
   imports: [],
@@ -16,6 +17,10 @@ import { CouponHistoryRepositoryImpl } from './infrastructure/couponhistory.repo
     {
       provide: 'CouponHistoryRepository',
       useClass: CouponHistoryRepositoryImpl,
+    },
+    {
+      provide: 'IEventRepository',
+      useClass: EventRepositoryImpl,
     },
   ],
   exports: [],

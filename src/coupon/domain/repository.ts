@@ -14,6 +14,8 @@ export interface CouponRepository {
     couponId: number,
     transactionalEntityManager?: EntityManager,
   ) => Promise<Coupon>;
+
+  getTransactionManager: () => EntityManager;
 }
 
 export interface CouponHistoryRepository {
@@ -25,4 +27,15 @@ export interface CouponHistoryRepository {
     couponHistory: CouponHistory,
     transactionalEntityManager?: EntityManager,
   ) => Promise<CouponHistory>;
+}
+
+// export interface ITransactionManager {
+//   (): EntityManager;
+// }
+
+export interface IEventRepository {
+  saveEvent: (args: {
+    events: any[];
+    transactionalEntityManager?: EntityManager;
+  }) => Promise<void>;
 }
