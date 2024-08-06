@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class DomainEvent {
+export class DomainEventEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
