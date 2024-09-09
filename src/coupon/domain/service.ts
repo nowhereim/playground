@@ -37,10 +37,11 @@ export class CouponService {
       });
   }
 
+  async expireCoupon() {}
+
   @OnEvent('IssuedCouponEvent')
   async handleOrderCreatedEvent(event: IssuedCouponEvent) {
     try {
-      console.log('잉?');
       await this.couponRepository
         .getTransactionManager()
         .transaction(async (transactionalEntityManager) => {
